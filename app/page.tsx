@@ -41,7 +41,15 @@ export default function MidiApp() {
   }, [mood, isInitialized, setParameter])
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      {/* Ambient background glows */}
+      <div className="backdrop" aria-hidden="true">
+        <div className="blob blob-a" />
+        <div className="blob blob-b" />
+        <div className="blob blob-c" />
+      </div>
+
+      <div className="relative z-10 min-h-screen">
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-3">
@@ -127,7 +135,8 @@ export default function MidiApp() {
           Kawaii Studio v1.0 / JUCE WebAssembly Engine / Film Soundtrack Production
         </p>
       </footer>
-    </div>
+      </div>
+    </>
   )
 }
 
