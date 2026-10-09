@@ -42,6 +42,14 @@
   --surface: oklch(0.14 0.035 290);
   --surface-raised: oklch(0.18 0.045 290);
 
+  --knob-track: oklch(0.2 0.04 290);
+  --knob-ring: oklch(0.25 0.06 290);
+  --knob-body: oklch(0.14 0.04 290);
+  --knob-body-border: oklch(0.25 0.06 290);
+  --knob-shadow: oklch(0.12 0.035 290);
+  --knob-arc: oklch(0.55 0.18 290);
+  --knob-indicator: oklch(0.7 0.2 290);
+
   --blob: 0.35;
   color-scheme: dark;
 }
@@ -61,7 +69,7 @@
   --panel: rgba(255, 255, 255, 0.74);
   --pb: rgba(139, 92, 246, 0.22);
   --text: #2b2152;
-  --muted: #7a6da6;
+  --muted-fg: #7a6da6;
   --val: #6a5c9c;
   --accent: #8b5cf6;
   --accent2: #a855f7;
@@ -97,8 +105,7 @@
   --secondary: var(--accent2);
   --secondary-foreground: var(--onb);
   --muted: var(--track);
-  --muted-foreground: var(--muted);
-  --accent: var(--accent);
+  --muted-foreground: var(--muted-fg);
   --accent-foreground: var(--onb);
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
@@ -113,6 +120,14 @@
   --glow: var(--accent);
   --surface: rgba(255, 255, 255, 0.55);
   --surface-raised: rgba(255, 255, 255, 0.82);
+
+  --knob-track: rgba(139, 92, 246, 0.28);
+  --knob-ring: rgba(139, 92, 246, 0.4);
+  --knob-body: #ffffff;
+  --knob-body-border: var(--discb);
+  --knob-shadow: var(--disc2);
+  --knob-arc: var(--accent);
+  --knob-indicator: #7c3aed;
 
   --sidebar: rgba(255, 255, 255, 0.55);
   --sidebar-foreground: var(--text);

@@ -34,11 +34,13 @@ const TIPS = [
 interface StudioCompanionProps {
   mood: Mood
   isPlaying: boolean
+  theme?: "dark" | "light"
 }
 
-export function StudioCompanion({ mood, isPlaying }: StudioCompanionProps) {
+export function StudioCompanion({ mood, isPlaying, theme = "dark" }: StudioCompanionProps) {
   const [tipIndex, setTipIndex] = useState(0)
   const line = MOOD_LINES[mood][isPlaying ? "playing" : "idle"]
+  const isLight = theme === "light"
 
   return (
     <aside
@@ -46,7 +48,7 @@ export function StudioCompanion({ mood, isPlaying }: StudioCompanionProps) {
       className="relative rounded-2xl border border-border bg-card overflow-hidden min-h-[420px] flex flex-col"
     >
       <Image
-        src="/images/companion.png"
+        src={isLight ? "/images/companion-light.PNG" : "/images/companion.png"}
         alt={`${COMPANION_NAME}, a red-haired anime mentor in a fur-collared coat holding a glowing sound orb`}
         fill
         priority

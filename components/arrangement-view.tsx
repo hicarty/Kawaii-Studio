@@ -293,7 +293,7 @@ export function ArrangementView({ isPlaying, tempo, mood, resetSignal, projectNa
           className="relative cursor-text select-none touch-none focus-visible:outline-2 focus-visible:outline-ring"
           style={{
             backgroundImage:
-              "repeating-linear-gradient(90deg, oklch(0.25 0.05 290 / 0.35) 0 1px, transparent 1px calc(100% / 36))",
+              "repeating-linear-gradient(90deg, var(--border) 0 1px, transparent 1px calc(100% / 36))",
           }}
         >
           {TRACKS.map((t) => {
@@ -342,7 +342,7 @@ export function ArrangementView({ isPlaying, tempo, mood, resetSignal, projectNa
           })}
 
           <div
-            className="pointer-events-none absolute inset-y-0 w-px bg-primary-foreground shadow-[0_0_10px_oklch(0.95_0.02_290/0.8)]"
+            className="pointer-events-none absolute inset-y-0 w-px bg-primary shadow-[0_0_10px_var(--glow)]"
             style={{ left: `${playheadPct}%` }}
             aria-hidden="true"
           />

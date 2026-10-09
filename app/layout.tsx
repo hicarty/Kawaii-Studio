@@ -29,7 +29,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem("kawaii-theme");if(t==="light"){document.documentElement.classList.add("light");document.documentElement.style.colorScheme="light"}}catch(e){}`,
+            __html: `try{var t=localStorage.getItem("kawaii-theme");var l=t==="light";var r=document.documentElement;r.classList.toggle("light",l);r.classList.toggle("dark",!l);r.style.colorScheme=l?"light":"dark"}catch(e){}`,
           }}
         />
       </head>

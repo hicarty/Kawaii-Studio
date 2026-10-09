@@ -162,7 +162,7 @@ export function RotaryKnob({
             cy={center}
             r={arcRadius}
             fill="none"
-            stroke="oklch(0.2 0.04 290)"
+            stroke="var(--knob-track)"
             strokeWidth={dim.stroke}
             strokeDasharray="2 3"
             opacity={0.4}
@@ -174,7 +174,7 @@ export function RotaryKnob({
             cy={center}
             r={radius}
             fill="none"
-            stroke="oklch(0.2 0.04 290)"
+            stroke="var(--knob-track)"
             strokeWidth={1}
             opacity={0.6}
           />
@@ -184,20 +184,20 @@ export function RotaryKnob({
             cx={center}
             cy={center}
             r={dim.inner / 2}
-            fill="oklch(0.14 0.04 290)"
-            stroke="oklch(0.25 0.06 290)"
+            fill="var(--knob-body)"
+            stroke="var(--knob-body-border)"
             strokeWidth={1.5}
           />
 
           {/* Inner shadow/depth circle */}
-          <circle cx={center} cy={center} r={dim.inner / 2 - 4} fill="oklch(0.12 0.035 290)" />
+          <circle cx={center} cy={center} r={dim.inner / 2 - 4} fill="var(--knob-shadow)" />
 
           {/* Value arc */}
           {normalizedValue > 0.005 && (
             <path
               d={`M ${startX} ${startY} A ${arcRadius} ${arcRadius} 0 ${largeArc} 1 ${endX} ${endY}`}
               fill="none"
-              stroke="oklch(0.55 0.18 290)"
+              stroke="var(--knob-arc)"
               strokeWidth={dim.stroke}
               strokeLinecap="round"
               filter={`url(#${filterId})`}
@@ -211,7 +211,7 @@ export function RotaryKnob({
             y1={indStartY}
             x2={indX}
             y2={indY}
-            stroke="oklch(0.7 0.2 290)"
+            stroke="var(--knob-indicator)"
             strokeWidth={2}
             strokeLinecap="round"
             filter={`url(#${filterId})`}

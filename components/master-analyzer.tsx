@@ -48,11 +48,6 @@ export function MasterAnalyzer({ isPlaying, mood }: MasterAnalyzerProps) {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
-    const styles = getComputedStyle(document.documentElement)
-    const primary = styles.getPropertyValue("--primary").trim() || "#8b5cf6"
-    const glow = styles.getPropertyValue("--chart-3").trim() || "#c084fc"
-    const grid = styles.getPropertyValue("--border").trim() || "#2a2040"
-
     const resize = () => {
       const dpr = window.devicePixelRatio || 1
       const { width, height } = canvas.getBoundingClientRect()
@@ -69,6 +64,11 @@ export function MasterAnalyzer({ isPlaying, mood }: MasterAnalyzerProps) {
       const { width, height } = canvas.getBoundingClientRect()
       const bins = binsRef.current
       const t = now / 1000
+
+      const styles = getComputedStyle(document.documentElement)
+      const primary = styles.getPropertyValue("--primary").trim() || "#8b5cf6"
+      const glow = styles.getPropertyValue("--chart-3").trim() || "#c084fc"
+      const grid = styles.getPropertyValue("--border").trim() || "#2a2040"
 
       for (let i = 0; i < BINS; i++) {
         const target = isPlaying ? spectrumTarget(i, mood, t) : 0
