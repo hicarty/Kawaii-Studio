@@ -10,7 +10,8 @@ import { TempoMoodSync } from "@/components/tempo-mood-sync"
 import { ExportPanel } from "@/components/export-panel"
 import { ArrangementView } from "@/components/arrangement-view"
 import { MasterAnalyzer } from "@/components/master-analyzer"
-import { Play, Pause, Square, SkipBack, Zap, Sun, Moon } from "lucide-react"
+import { StudioCompanion } from "@/components/studio-companion"
+import { Play, Pause, Square, SkipBack, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useJuceAudio } from "@/components/juce-audio-engine"
 
@@ -18,24 +19,8 @@ export default function MidiApp() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [tempo, setTempo] = useState(140)
   const [mood, setMood] = useState<"aggressive" | "balanced" | "mellow">("balanced")
-  const [resetSignal, setResetSignal] = useState(0)
-  const [theme, setTheme] = useState<"dark" | "light">("dark")
 
   const { isInitialized, initialize, setTransport, setParameter } = useJuceAudio()
-
-  // Restore the saved theme preference on mount.
-  useEffect(() => {
-    const stored = localStorage.getItem("kawaii-theme")
-    if (stored === "light" || stored === "dark") setTheme(stored)
-  }, [])
-
-  // Apply the theme to <html> and persist it.
-  useEffect(() => {
-    const root = document.documentElement
-    root.classList.toggle("light", theme === "light")
-    root.style.colorScheme = theme
-    localStorage.setItem("kawaii-theme", theme)
-  }, [theme])
 
   const togglePlayback = () => {
     setIsPlaying(!isPlaying)
@@ -43,7 +28,6 @@ export default function MidiApp() {
 
   const stopPlayback = () => {
     setIsPlaying(false)
-    setResetSignal((n) => n + 1)
   }
 
   useEffect(() => {
@@ -134,15 +118,6 @@ export default function MidiApp() {
                 <div className="w-px h-4 bg-border/30" />
                 <span className="text-[10px] font-mono text-primary tracking-wider uppercase">{mood}</span>
               </div>
-
-              <button
-                onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
-                className="w-9 h-9 flex items-center justify-center rounded-lg bg-surface border border-border/50 text-muted-foreground hover:text-foreground hover:bg-surface-raised transition-colors"
-                aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-                title={theme === "dark" ? "Light theme" : "Dark theme"}
-              >
-                {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </button>
             </div>
           </div>
         </div>
@@ -151,9 +126,12 @@ export default function MidiApp() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         {/* Tempo & Mood */}
-        <TempoMoodSync tempo={tempo} setTempo={setTempo} mood={mood} setMood={setMood} isPlaying={isPlaying} />
-
-        {/* Arrangement */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
+          <div className="flex flex-col gap-6 min-w-0">
+            <TempoMoodSync tempo={tempo} setTempo={setTempo} mood={mood} setMood={setMood} isPlaying={isPlaying} />
+          </div>
+          <StudioCompanion mood={mood} isPlaying={isPlaying} />
+        </div>
         <ArrangementView isPlaying={isPlaying} tempo={tempo} mood={mood} resetSignal={resetSignal} />
 
         {/* Production Channels */}
@@ -168,7 +146,7 @@ export default function MidiApp() {
         {/* Mixer */}
         <MixerPanel isPlaying={isPlaying} />
 
-        {/* Master Analyser */}
+        {/* Master Analyzer */}
         <MasterAnalyzer isPlaying={isPlaying} mood={mood} />
 
         {/* Export */}
