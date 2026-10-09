@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from "react"
 import { RotaryKnob } from "@/components/rotary-knob"
 import { ToggleSwitch } from "@/components/toggle-switch"
 import { cn } from "@/lib/utils"
+import { useJuceAudio } from "@/components/juce-audio-engine"
+import { setParameter } from "@/lib/juce/bridge"
 
 interface DrumMachineProps {
   isPlaying: boolean
@@ -25,12 +27,33 @@ export function DrumMachine({ isPlaying, tempo, mood }: DrumMachineProps) {
   )
   const [currentStep, setCurrentStep] = useState(0)
   const [swing, setSwing] = useState(0)
-  const [volume, setVolume] = useState(7)
-  const [pitch, setPitch] = useState(5)
-  const [decay, setDecay] = useState(5)
+  const [volume, setVolume] = useState(4.5)
+  const [pitch, setPitch] = useState(2.8)
+  const [decay, setDecay] = useState(3.1)
   const [sequencerOn, setSequencerOn] = useState(true)
   const [shuffle, setShuffle] = useState(false)
   const audioContextRef = useRef<AudioContext | null>(null)
+
+  const { isJuceNative } = useJuceAudio()
+
+  // Push drum voicing controls to the native engine.
+  useEffect(() => {
+    if (!isJuceNative) return
+    setParameter("drumPitch", pitch)
+    setParameter("drumDecay", decay)
+    setParameter("drumSwing", swing)
+    setParameter("drumLevel", volume / 10)
+  }, [isJuceNative, pitch, decay, swing, volume])
+
+  // Push step patterns to the native engine as bitmasks.
+  useEffect(() => {
+    if (!isJuceNative) return
+    const mask = (pattern: boolean[]) =>
+      pattern.reduce((acc, on, i) => (on ? acc | (1 << i) : acc), 0)
+    setParameter("kickPattern", mask(kickPattern))
+    setParameter("snarePattern", mask(snarePattern))
+    setParameter("hihatPattern", mask(hihatPattern))
+  }, [isJuceNative, kickPattern, snarePattern, hihatPattern])
 
   useEffect(() => {
     if (isPlaying && sequencerOn) {
@@ -53,6 +76,7 @@ export function DrumMachine({ isPlaying, tempo, mood }: DrumMachineProps) {
   }, [currentStep])
 
   const playDrums = async () => {
+    if (isJuceNative) return
     if (!audioContextRef.current) {
       audioContextRef.current = new AudioContext()
     }

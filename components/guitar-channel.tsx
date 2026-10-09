@@ -5,6 +5,7 @@ import { RotaryKnob } from "@/components/rotary-knob"
 import { ToggleSwitch } from "@/components/toggle-switch"
 import { Settings, ChevronLeft, ChevronRight, X, Home, FolderOpen } from "lucide-react"
 import { useJuceAudio } from "@/components/juce-audio-engine"
+import { loadModel, openModelDialog, setParameter } from "@/lib/juce/bridge"
 
 interface GuitarChannelProps {
   isPlaying: boolean
@@ -35,6 +36,34 @@ export function GuitarChannel({ isPlaying, tempo, mood }: GuitarChannelProps) {
       guitarProcessor.setTone(treble / 10)
     }
   }, [input, bass, treble, guitarProcessor, isInitialized])
+
+  // Neural Amp Modeler parameters
+  useEffect(() => {
+    if (!isJuceNative) return
+    setParameter("namInput", input)
+    setParameter("namThreshold", threshold)
+    setParameter("namOutput", output)
+    setParameter("noiseGate", noiseGate ? 1 : 0)
+    setParameter("normalize", normalize ? 1 : 0)
+    setParameter("eq", eq ? 1 : 0)
+  }, [isJuceNative, input, threshold, output, noiseGate, normalize, eq])
+
+  const applyModel = async (path: string) => {
+    if (!isJuceNative || !path) return
+    const error = await loadModel(path)
+    if (typeof error === "string" && error.length > 0) {
+      console.warn("[NAM]", error)
+    }
+  }
+
+  const browseForModel = async () => {
+    if (!isJuceNative) return
+    const path = await openModelDialog()
+    if (typeof path === "string" && path.length > 0) {
+      setModelPath(path)
+      await applyModel(path)
+    }
+  }
 
   useEffect(() => {
     if (isPlaying) {
@@ -138,10 +167,10 @@ export function GuitarChannel({ isPlaying, tempo, mood }: GuitarChannelProps) {
       {/* Model directory selector */}
       <div className="space-y-3">
         <div className="flex items-center gap-2 bg-surface rounded-lg px-3 py-2.5">
-          <button className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Browse files">
+          <button onClick={browseForModel} className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Browse files">
             <FolderOpen className="w-4 h-4" />
           </button>
-          <button className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Open folder">
+          <button onClick={browseForModel} className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Open folder">
             <FolderOpen className="w-4 h-4" />
           </button>
           <button className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Previous">
@@ -154,6 +183,9 @@ export function GuitarChannel({ isPlaying, tempo, mood }: GuitarChannelProps) {
             type="text"
             value={modelPath}
             onChange={(e) => setModelPath(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") applyModel(modelPath)
+            }}
             placeholder="Select model directory..."
             className="flex-1 bg-transparent text-sm text-muted-foreground placeholder:text-muted-foreground/50 outline-none"
           />
