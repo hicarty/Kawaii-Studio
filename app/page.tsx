@@ -5,14 +5,17 @@ import { useState, useEffect } from "react"
 import { GuitarChannel } from "@/components/guitar-channel"
 import { SynthChannel } from "@/components/synth-channel"
 import { DrumMachine } from "@/components/drum-machine"
+import { MixerPanel } from "@/components/mixer-panel"
+import { TempoMoodSync } from "@/components/tempo-mood-sync"
+import { ExportPanel } from "@/components/export-panel"
 import { Play, Pause, Square, SkipBack, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useJuceAudio } from "@/components/juce-audio-engine"
 
 export default function MidiApp() {
   const [isPlaying, setIsPlaying] = useState(false)
-  const [tempo] = useState(140)
-  const [mood] = useState<"aggressive" | "balanced" | "mellow">("balanced")
+  const [tempo, setTempo] = useState(140)
+  const [mood, setMood] = useState<"aggressive" | "balanced" | "mellow">("balanced")
 
   const { isInitialized, initialize, setTransport, setParameter } = useJuceAudio()
 
@@ -119,6 +122,9 @@ export default function MidiApp() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        {/* Tempo & Mood */}
+        <TempoMoodSync tempo={tempo} setTempo={setTempo} mood={mood} setMood={setMood} isPlaying={isPlaying} />
+
         {/* Production Channels */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <GuitarChannel isPlaying={isPlaying} tempo={tempo} mood={mood} />
@@ -127,6 +133,12 @@ export default function MidiApp() {
 
         {/* Drum Machine */}
         <DrumMachine isPlaying={isPlaying} tempo={tempo} mood={mood} />
+
+        {/* Mixer */}
+        <MixerPanel isPlaying={isPlaying} />
+
+        {/* Export */}
+        <ExportPanel tempo={tempo} mood={mood} />
       </main>
 
       {/* Footer */}

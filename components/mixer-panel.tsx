@@ -1,9 +1,11 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { RotaryKnob } from "@/components/rotary-knob"
 import { ToggleSwitch } from "@/components/toggle-switch"
 import { cn } from "@/lib/utils"
+import { useJuceAudio } from "@/components/juce-audio-engine"
+import { setParameter } from "@/lib/juce/bridge"
 
 interface ChannelStripProps {
   label: string
@@ -85,7 +87,7 @@ function ChannelStrip({
   )
 }
 
-export function MixerPanel() {
+export function MixerPanel({ isPlaying = false }: { isPlaying?: boolean }) {
   const [channels, setChannels] = useState({
     guitar: { level: 7, pan: -2, muted: false, solo: false },
     synth: { level: 6.5, pan: 2, muted: false, solo: false },
@@ -96,7 +98,15 @@ export function MixerPanel() {
   const [crossfade, setCrossfade] = useState(5)
   const [compressor, setCompressor] = useState(true)
   const [limiter, setLimiter] = useState(true)
-  const [meterValues] = useState({ guitar: 0.7, synth: 0.6, drums: 0.8, bass: 0.5, master: 0.75 })
+  const [meterValues, setMeterValues] = useState({
+    guitar: 0.7,
+    synth: 0.6,
+    drums: 0.8,
+    bass: 0.5,
+    master: 0.75,
+  })
+
+  const { isJuceNative } = useJuceAudio()
 
   const updateChannel = useCallback(
     (key: keyof typeof channels, field: string, value: number | boolean) => {
@@ -107,6 +117,55 @@ export function MixerPanel() {
     },
     [],
   )
+
+  // Push the full mixer state to the native engine.
+  useEffect(() => {
+    if (!isJuceNative) return
+    setParameter("guitarLevel", channels.guitar.level / 10)
+    setParameter("synthLevel", channels.synth.level / 10)
+    setParameter("drumLevel", channels.drums.level / 10)
+    setParameter("bassLevel", channels.bass.level / 10)
+    setParameter("masterLevel", channels.master.level / 10)
+
+    setParameter("guitarPan", channels.guitar.pan / 5)
+    setParameter("synthPan", channels.synth.pan / 5)
+    setParameter("drumPan", channels.drums.pan / 5)
+    setParameter("bassPan", channels.bass.pan / 5)
+
+    setParameter("guitarMute", channels.guitar.muted ? 1 : 0)
+    setParameter("synthMute", channels.synth.muted ? 1 : 0)
+    setParameter("drumMute", channels.drums.muted ? 1 : 0)
+    setParameter("bassMute", channels.bass.muted ? 1 : 0)
+    setParameter("masterMute", channels.master.muted ? 1 : 0)
+
+    setParameter("guitarSolo", channels.guitar.solo ? 1 : 0)
+    setParameter("synthSolo", channels.synth.solo ? 1 : 0)
+    setParameter("drumSolo", channels.drums.solo ? 1 : 0)
+    setParameter("bassSolo", channels.bass.solo ? 1 : 0)
+
+    setParameter("crossfade", crossfade / 10)
+    setParameter("compressor", compressor ? 1 : 0)
+    setParameter("limiter", limiter ? 1 : 0)
+  }, [isJuceNative, channels, crossfade, compressor, limiter])
+
+  // Animate level meters while playing.
+  useEffect(() => {
+    if (!isPlaying) {
+      setMeterValues({ guitar: 0, synth: 0, drums: 0, bass: 0, master: 0 })
+      return
+    }
+    const id = setInterval(() => {
+      const jitter = (base: number) => Math.min(1, Math.max(0.15, base + (Math.random() - 0.5) * 0.5))
+      setMeterValues({
+        guitar: jitter(0.7),
+        synth: jitter(0.6),
+        drums: jitter(0.8),
+        bass: jitter(0.5),
+        master: jitter(0.75),
+      })
+    }, 120)
+    return () => clearInterval(id)
+  }, [isPlaying])
 
   return (
     <div className="rounded-2xl border border-border bg-card p-6 space-y-5 relative overflow-hidden">
