@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+
+# Production
+build/
+
+# JUCE / native build artefacts
+Builds/
+JuceLibraryCode/
+
+# TypeScript
+tsconfig.tsbuildinfo
+
+# macOS
+.DS_Store
+
+# Environment
+.env
+.env*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editors
+.vscode/
+.idea/

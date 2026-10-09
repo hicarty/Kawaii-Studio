@@ -8,6 +8,8 @@ import { DrumMachine } from "@/components/drum-machine"
 import { MixerPanel } from "@/components/mixer-panel"
 import { TempoMoodSync } from "@/components/tempo-mood-sync"
 import { ExportPanel } from "@/components/export-panel"
+import { ArrangementView } from "@/components/arrangement-view"
+import { MasterAnalyzer } from "@/components/master-analyzer"
 import { Play, Pause, Square, SkipBack, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useJuceAudio } from "@/components/juce-audio-engine"
@@ -16,6 +18,7 @@ export default function MidiApp() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [tempo, setTempo] = useState(140)
   const [mood, setMood] = useState<"aggressive" | "balanced" | "mellow">("balanced")
+  const [resetSignal, setResetSignal] = useState(0)
 
   const { isInitialized, initialize, setTransport, setParameter } = useJuceAudio()
 
@@ -25,6 +28,7 @@ export default function MidiApp() {
 
   const stopPlayback = () => {
     setIsPlaying(false)
+    setResetSignal((n) => n + 1)
   }
 
   useEffect(() => {
@@ -125,6 +129,9 @@ export default function MidiApp() {
         {/* Tempo & Mood */}
         <TempoMoodSync tempo={tempo} setTempo={setTempo} mood={mood} setMood={setMood} isPlaying={isPlaying} />
 
+        {/* Arrangement */}
+        <ArrangementView isPlaying={isPlaying} tempo={tempo} mood={mood} resetSignal={resetSignal} />
+
         {/* Production Channels */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <GuitarChannel isPlaying={isPlaying} tempo={tempo} mood={mood} />
@@ -136,6 +143,9 @@ export default function MidiApp() {
 
         {/* Mixer */}
         <MixerPanel isPlaying={isPlaying} />
+
+        {/* Master Analyser */}
+        <MasterAnalyzer isPlaying={isPlaying} mood={mood} />
 
         {/* Export */}
         <ExportPanel tempo={tempo} mood={mood} />
