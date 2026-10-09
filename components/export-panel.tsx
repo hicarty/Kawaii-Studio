@@ -1,25 +1,78 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
-import { Download, Film, FileAudio, Music } from "lucide-react"
+import { Download, Film, FileAudio, Music, RefreshCw, Check, AlertTriangle } from "lucide-react"
+import { exportMidiFiles } from "@/lib/export/midi"
+import { exportStems } from "@/lib/export/wav"
+import { renderFilmMaster } from "@/lib/export/video"
+import { revokeObjectUrl, type ExportFile } from "@/lib/export/types"
+import type { ExportMood } from "@/lib/export/song"
 
 interface ExportPanelProps {
   tempo: number
   mood: string
 }
 
-export function ExportPanel({ tempo, mood }: ExportPanelProps) {
-  const [isExporting, setIsExporting] = useState(false)
-  const [exportFormat, setExportFormat] = useState<"wav" | "midi" | "film" | null>(null)
+type Format = "wav" | "midi" | "film"
+type Phase = "idle" | "working" | "done"
 
-  const handleExport = (format: "wav" | "midi" | "film") => {
-    setIsExporting(true)
+const FORMAT_LABEL: Record<Format, string> = {
+  wav: "WAV Stems",
+  midi: "MIDI Files",
+  film: "Film Master",
+}
+
+export function ExportPanel({ tempo, mood }: ExportPanelProps) {
+  const [phase, setPhase] = useState<Phase>("idle")
+  const [status, setStatus] = useState("")
+  const [files, setFiles] = useState<ExportFile[]>([])
+  const [exportFormat, setExportFormat] = useState<Format | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const urlsRef = useRef<string[]>([])
+
+  useEffect(() => {
+    const urls = urlsRef.current
+    return () => urls.forEach(revokeObjectUrl)
+  }, [])
+
+  const clearFiles = () => {
+    urlsRef.current.forEach(revokeObjectUrl)
+    urlsRef.current = []
+    setFiles([])
+  }
+
+  const handleExport = async (format: Format) => {
+    setError(null)
+    setPhase("working")
     setExportFormat(format)
-    setTimeout(() => {
-      setIsExporting(false)
+    setStatus(format === "midi" ? "Generating MIDI…" : format === "wav" ? "Rendering stems at 48 kHz…" : "Preparing film master…")
+
+    try {
+      const emitted = mood as ExportMood
+      const result: ExportFile[] =
+        format === "midi"
+          ? await exportMidiFiles(emitted, tempo)
+          : format === "wav"
+            ? await exportStems(emitted, tempo)
+            : [await renderFilmMaster(emitted, tempo, setStatus)]
+
+      clearFiles()
+      urlsRef.current = result.map((f) => f.url)
+      setFiles(result)
+      setPhase("done")
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+      setPhase("idle")
       setExportFormat(null)
-    }, 2000)
+    }
+  }
+
+  const reset = () => {
+    clearFiles()
+    setPhase("idle")
+    setExportFormat(null)
+    setError(null)
   }
 
   return (
@@ -58,67 +111,106 @@ export function ExportPanel({ tempo, mood }: ExportPanelProps) {
         </div>
       </div>
 
-      {/* Export buttons */}
-      <div className="grid grid-cols-3 gap-3">
-        <button
-          onClick={() => handleExport("wav")}
-          disabled={isExporting}
-          className={cn(
-            "flex flex-col items-center gap-2 py-5 rounded-xl border transition-all",
-            exportFormat === "wav"
-              ? "bg-primary/15 border-primary/50"
-              : "bg-surface border-border/50 hover:border-border hover:bg-surface-raised",
-            isExporting && "opacity-50 cursor-not-allowed",
-          )}
-        >
-          <FileAudio className="w-5 h-5 text-muted-foreground" />
-          <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">WAV Stems</span>
-        </button>
+      {phase === "idle" && (
+        <>
+          {/* Export buttons */}
+          <div className="grid grid-cols-3 gap-3">
+            <button
+              onClick={() => handleExport("wav")}
+              className={cn(
+                "flex flex-col items-center gap-2 py-5 rounded-xl border transition-all",
+                exportFormat === "wav"
+                  ? "bg-primary/15 border-primary/50"
+                  : "bg-surface border-border/50 hover:border-border hover:bg-surface-raised",
+                "cursor-pointer",
+              )}
+            >
+              <FileAudio className="w-5 h-5 text-muted-foreground" />
+              <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">WAV Stems</span>
+            </button>
 
-        <button
-          onClick={() => handleExport("midi")}
-          disabled={isExporting}
-          className={cn(
-            "flex flex-col items-center gap-2 py-5 rounded-xl border transition-all",
-            exportFormat === "midi"
-              ? "bg-primary/15 border-primary/50"
-              : "bg-surface border-border/50 hover:border-border hover:bg-surface-raised",
-            isExporting && "opacity-50 cursor-not-allowed",
-          )}
-        >
-          <Music className="w-5 h-5 text-muted-foreground" />
-          <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">MIDI Files</span>
-        </button>
+            <button
+              onClick={() => handleExport("midi")}
+              className={cn(
+                "flex flex-col items-center gap-2 py-5 rounded-xl border transition-all",
+                exportFormat === "midi"
+                  ? "bg-primary/15 border-primary/50"
+                  : "bg-surface border-border/50 hover:border-border hover:bg-surface-raised",
+                "cursor-pointer",
+              )}
+            >
+              <Music className="w-5 h-5 text-muted-foreground" />
+              <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">MIDI Files</span>
+            </button>
 
-        <button
-          onClick={() => handleExport("film")}
-          disabled={isExporting}
-          className={cn(
-            "flex flex-col items-center gap-2 py-5 rounded-xl border transition-all",
-            exportFormat === "film"
-              ? "bg-primary/15 border-primary/50"
-              : "bg-primary/10 border-primary/30 hover:bg-primary/20",
-            isExporting && "opacity-50 cursor-not-allowed",
-          )}
-        >
-          <Film className="w-5 h-5 text-primary" />
-          <span className="text-[10px] font-medium tracking-wider text-primary uppercase">Film Master</span>
-        </button>
-      </div>
+            <button
+              onClick={() => handleExport("film")}
+              className={cn(
+                "flex flex-col items-center gap-2 py-5 rounded-xl border transition-all cursor-pointer",
+                exportFormat === "film"
+                  ? "bg-primary/15 border-primary/50"
+                  : "bg-primary/10 border-primary/30 hover:bg-primary/20",
+              )}
+            >
+              <Film className="w-5 h-5 text-primary" />
+              <span className="text-[10px] font-medium tracking-wider text-primary uppercase">Film Master</span>
+            </button>
+          </div>
+        </>
+      )}
 
-      {/* Exporting indicator */}
-      {isExporting && (
+      {phase === "working" && (
         <div className="flex items-center gap-3 px-4 py-2.5 bg-surface rounded-lg">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
           </span>
-          <span className="text-[10px] font-mono text-muted-foreground">
-            Exporting {exportFormat === "film" ? "film master" : exportFormat?.toUpperCase()} at {tempo} BPM...
-          </span>
+          <span className="text-[10px] font-mono text-muted-foreground">{status}</span>
+        </div>
+      )}
+
+      {phase === "done" && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-primary" />
+              <span className="text-[10px] font-mono text-foreground">
+                {files.length} {files.length === 1 ? "file" : "files"} ready — {FORMAT_LABEL[exportFormat ?? "wav"]}
+              </span>
+            </div>
+            <button
+              onClick={reset}
+              className="flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <RefreshCw className="w-3 h-3" />
+              New export
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            {files.map((file) => (
+              <a
+                key={file.name}
+                href={file.url}
+                download={file.name}
+                className="flex items-center justify-between gap-3 px-4 py-2.5 bg-surface hover:bg-surface-raised rounded-lg border border-border/50 transition-colors group"
+              >
+                <span className="text-[11px] font-mono text-foreground truncate">{file.name}</span>
+                <span className="flex items-center gap-1 text-[10px] font-mono text-primary uppercase">
+                  <Download className="w-3.5 h-3.5" />
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-destructive/10 border border-destructive/30 rounded-lg">
+          <AlertTriangle className="w-3.5 h-3.5 text-destructive shrink-0" />
+          <span className="text-[10px] font-mono text-destructive">{error}</span>
         </div>
       )}
     </div>
   )
 }
-
