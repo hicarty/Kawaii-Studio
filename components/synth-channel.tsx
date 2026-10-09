@@ -25,7 +25,7 @@ export function SynthChannel({ isPlaying, tempo, mood }: SynthChannelProps) {
   const [patchPath, setPatchPath] = useState("")
   const [visualActivity, setVisualActivity] = useState(0)
 
-  const { synthProcessor, audioContext, isInitialized } = useJuceAudio()
+  const { synthProcessor, isInitialized, isJuceNative, noteOn, noteOff } = useJuceAudio()
 
   useEffect(() => {
     if (synthProcessor && isInitialized) {
@@ -48,9 +48,11 @@ export function SynthChannel({ isPlaying, tempo, mood }: SynthChannelProps) {
   }, [isPlaying])
 
   const playDnBBass = async () => {
-    if (synthProcessor && audioContext && isInitialized) {
-      synthProcessor.noteOn(55, 0.8)
-      setTimeout(() => synthProcessor.noteOff(), 1000)
+    if (isJuceNative) {
+      const note = 40
+      noteOn(note, 0.8)
+      setTimeout(() => noteOff(note), 1000)
+      return
     } else {
       const ctx = new AudioContext()
       const osc1 = ctx.createOscillator()

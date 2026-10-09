@@ -26,7 +26,7 @@ export function GuitarChannel({ isPlaying, tempo, mood }: GuitarChannelProps) {
   const [irPath, setIrPath] = useState("")
   const [visualActivity, setVisualActivity] = useState(0)
 
-  const { guitarProcessor, audioContext, isInitialized } = useJuceAudio()
+  const { guitarProcessor, isInitialized, isJuceNative, noteOn, noteOff } = useJuceAudio()
 
   useEffect(() => {
     if (guitarProcessor && isInitialized) {
@@ -48,16 +48,11 @@ export function GuitarChannel({ isPlaying, tempo, mood }: GuitarChannelProps) {
   }, [isPlaying])
 
   const playGuitarNote = async () => {
-    if (guitarProcessor && audioContext && isInitialized) {
-      const osc = audioContext.createOscillator()
-      const gainNode = audioContext.createGain()
-      osc.type = "sawtooth"
-      osc.frequency.value = 82.41
-      gainNode.gain.value = 0.3
-      osc.connect(gainNode)
-      gainNode.connect(audioContext.destination)
-      osc.start()
-      osc.stop(audioContext.currentTime + 0.5)
+    if (isJuceNative) {
+      const note = 28
+      noteOn(note, 0.9)
+      setTimeout(() => noteOff(note), 450)
+      return
     } else {
       const ctx = new AudioContext()
       const osc = ctx.createOscillator()

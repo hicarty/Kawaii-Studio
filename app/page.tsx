@@ -17,7 +17,7 @@ export default function MidiApp() {
   const [tempo, setTempo] = useState(140)
   const [mood, setMood] = useState<"aggressive" | "balanced" | "mellow">("balanced")
 
-  const { isInitialized, initialize } = useJuceAudio()
+  const { isInitialized, initialize, setTransport, setParameter } = useJuceAudio()
 
   const togglePlayback = () => {
     setIsPlaying(!isPlaying)
@@ -32,6 +32,16 @@ export default function MidiApp() {
       initialize()
     }
   }, [isPlaying, isInitialized, initialize])
+
+  // Keep the native JUCE engine in sync with the transport.
+  useEffect(() => {
+    if (isInitialized) setTransport(isPlaying, tempo)
+  }, [isPlaying, tempo, isInitialized, setTransport])
+
+  useEffect(() => {
+    if (isInitialized)
+      setParameter("mood", mood === "aggressive" ? 0 : mood === "mellow" ? 2 : 1)
+  }, [mood, isInitialized, setParameter])
 
   return (
     <div className="min-h-screen bg-background">
