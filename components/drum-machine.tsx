@@ -15,6 +15,19 @@ interface DrumMachineProps {
 
 const STEPS = 16
 
+// Build a fresh, groove-anchored variation: the downbeat and backbeat stay put
+// while the surrounding hits are re-rolled, weighted by the current mood.
+function makeVariation(mood: DrumMachineProps["mood"]) {
+  const density = mood === "aggressive" ? 1.35 : mood === "mellow" ? 0.6 : 1
+  const roll = (p: number) => Math.random() < Math.min(p * density, 1)
+
+  return {
+    kick: Array.from({ length: STEPS }, (_, i) => (i === 0 || i === 8 ? true : roll(0.18))),
+    snare: Array.from({ length: STEPS }, (_, i) => (i === 4 || i === 12 ? true : roll(0.1))),
+    hihat: Array.from({ length: STEPS }, (_, i) => roll(i % 2 === 0 ? 0.7 : 0.28)),
+  }
+}
+
 export function DrumMachine({ isPlaying, tempo, mood }: DrumMachineProps) {
   const [kickPattern, setKickPattern] = useState<boolean[]>(
     Array.from({ length: STEPS }, (_, i) => i % 4 === 0),
@@ -68,6 +81,29 @@ export function DrumMachine({ isPlaying, tempo, mood }: DrumMachineProps) {
       setCurrentStep(0)
     }
   }, [isPlaying, sequencerOn, tempo])
+
+  const prevStepRef = useRef(0)
+
+  const applyVariation = () => {
+    const v = makeVariation(mood)
+    setKickPattern(v.kick)
+    setSnarePattern(v.snare)
+    setHihatPattern(v.hihat)
+  }
+
+  // Shuffle: re-roll the pattern at the start of every loop (step 15 -> 0).
+  useEffect(() => {
+    const wrapped = currentStep === 0 && prevStepRef.current === STEPS - 1
+    prevStepRef.current = currentStep
+    if (wrapped && isPlaying && sequencerOn && shuffle) applyVariation()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, isPlaying, sequencerOn, shuffle])
+
+  // Shuffle immediately when the toggle is switched on.
+  useEffect(() => {
+    if (shuffle) applyVariation()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shuffle])
 
   useEffect(() => {
     if (isPlaying && sequencerOn) {
