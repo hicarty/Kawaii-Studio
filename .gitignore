@@ -10,6 +10,7 @@ next-env.d.ts
 
 # Production
 build/
+dist/
 
 # JUCE / native build artefacts
 Builds/

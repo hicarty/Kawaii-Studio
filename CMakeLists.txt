@@ -10,9 +10,9 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS version")
 add_subdirectory("/Users/havenc/Downloads/JUCE" JUCE)
 
 juce_add_plugin(KawaiiStudio
-    COMPANY_NAME              "KawaiiStudio"
+    COMPANY_NAME              "Cluster Tech, Inc."
     BUNDLE_ID                 "com.kawaiistudio.kawaiistudio"
-    PLUGIN_MANUFACTURER_CODE  Manu
+    PLUGIN_MANUFACTURER_CODE  Cltr
     PLUGIN_CODE               Kawi
     PRODUCT_NAME              "Kawaii Studio"
     DESCRIPTION               "Djent x DnB fusion production instrument"
@@ -21,7 +21,7 @@ juce_add_plugin(KawaiiStudio
     NEEDS_MIDI_OUTPUT         FALSE
     IS_MIDI_EFFECT            FALSE
     EDITOR_WANTS_KEYBOARD_FOCUS FALSE
-    COPY_PLUGIN_AFTER_BUILD   FALSE
+    COPY_PLUGIN_AFTER_BUILD   TRUE
     MICROPHONE_PERMISSION_ENABLED FALSE
     FORMATS                   Standalone VST3 AU)
 
